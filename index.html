@@ -315,6 +315,10 @@
       <button class="chart-tab" onclick="switchChartVar('precip',this)">🌧️ Precipitation</button>
       <button class="chart-tab" onclick="switchChartVar('humidity',this)">💧 Humidity</button>
       <button class="chart-tab" onclick="switchChartVar('pressure',this)">🌡 Pressure</button>
+      <button class="chart-tab" onclick="switchChartVar('cloudcover',this)">☁️ Cloud Cover</button>
+      <button class="chart-tab" onclick="switchChartVar('cape',this)">⚡ CAPE</button>
+      <button class="chart-tab" onclick="switchChartVar('uv',this)">🌞 UV Index</button>
+      <button class="chart-tab" onclick="switchChartVar('visibility',this)">👁️ Visibility</button>
       <button class="chart-tab" onclick="switchChartVar('ndfd',this)">📡 NDFD Official</button>
       <button class="chart-tab" onclick="switchChartVar('ensemble',this)">🎲 GEFS Ensemble</button>
       <button class="chart-tab" onclick="switchChartVar('compare',this)">📊 Model Compare</button>
@@ -465,10 +469,135 @@ const MODELS = {
       {label:'NOAA MAG GEFS Graphics', url:'https://mag.ncep.noaa.gov/model-guidance-model-area.php?group=Model%20Guidance&model=gefs'},
       {label:'GEFS on NOMADS', url:'https://nomads.ncep.noaa.gov/pub/data/nccf/com/gefs/prod/'},
     ]
-  }
+  },
+  rrfs: {
+    name:'RRFS', fullName:'Rapid Refresh Forecast System',
+    color:'#fb923c', dot:'#fb923c',
+    resolution:'3 km', domain:'CONUS + Alaska', cycles:'00, 06, 12, 18 UTC (+ DA cycles)',
+    maxForecast:'60h',
+    provider:'NOAA/NCEP/EMC', openMeteoModel:'gfs_hrrr',
+    desc:'Next-generation convection-allowing model replacing HRRR and RAP. Built on the UFS (Unified Forecast System) framework using FV3 dynamics at 3 km. Features ensemble capability (RRFS-CMEPS), hourly data assimilation, and improved physics packages. Currently in parallel testing ahead of operational implementation.',
+    links:[
+      {label:'RRFS Development (EMC)', url:'https://www.emc.ncep.noaa.gov/emc/pages/numerical_forecast_systems/rrfs.php'},
+      {label:'RRFS Wiki (DTC)', url:'https://dtcenter.org/community-code/rapid-refresh-forecast-system-rrfs'},
+      {label:'UFS Portal', url:'https://ufscommunity.org/'},
+    ]
+  },
+  ecmwf: {
+    name:'ECMWF', fullName:'ECMWF Integrated Forecast System (IFS)',
+    color:'#f472b6', dot:'#f472b6',
+    resolution:'0.25° (~25 km)', domain:'Global', cycles:'00, 12 UTC',
+    maxForecast:'360h (15 days)',
+    provider:'ECMWF', openMeteoModel:'ecmwf_ifs025',
+    desc:'Widely regarded as the world\'s leading NWP model. The ECMWF IFS uses a spectral dynamical core at TCo1279 resolution (~9 km operationally, 0.25° on Open-Meteo). Features 4D-Var data assimilation, coupled ocean-atmosphere-land-sea ice system, and extensive ensemble prediction. Consistently outperforms all other global models in independent verification.',
+    links:[
+      {label:'ECMWF Model Overview', url:'https://www.ecmwf.int/en/forecasts/documentation-and-support'},
+      {label:'ECMWF Charts', url:'https://charts.ecmwf.int/'},
+      {label:'Open Data (free access)', url:'https://www.ecmwf.int/en/forecasts/datasets/open-data'},
+    ]
+  },
+  gem: {
+    name:'GEM', fullName:'Global Environmental Multiscale Model (Canada)',
+    color:'#f87171', dot:'#f87171',
+    resolution:'15 km', domain:'Global', cycles:'00, 12 UTC',
+    maxForecast:'240h (10 days)',
+    provider:'Environment and Climate Change Canada (ECCC)', openMeteoModel:'gem_global',
+    desc:'Canadian global NWP model operated by ECCC / Meteorological Service of Canada. Uses a semi-Lagrangian, semi-implicit dynamical core. Excellent performance over the Arctic and Canada. Feeds into the Canadian Ensemble Prediction System (GEPS) and the Canadian Regional Deterministic Prediction System (RDPS).',
+    links:[
+      {label:'MSC GEM Documentation', url:'https://weather.gc.ca/model_forecast/index_e.html'},
+      {label:'MSC Datamart (open data)', url:'https://dd.weather.gc.ca/'},
+      {label:'ECCC NWP Overview', url:'https://www.canada.ca/en/environment-climate-change/services/weather-general-tools-resources/numerical-weather-prediction.html'},
+    ]
+  },
+  gemregional: {
+    name:'RDPS', fullName:'Regional Deterministic Prediction System (Canada)',
+    color:'#fca5a5', dot:'#fca5a5',
+    resolution:'10 km', domain:'North America', cycles:'00, 06, 12, 18 UTC',
+    maxForecast:'84h',
+    provider:'Environment and Climate Change Canada (ECCC)', openMeteoModel:'gem_regional',
+    desc:'High-resolution regional NWP model over North America. RDPS provides detailed short-range guidance with 4D-EnKF data assimilation. Particularly valuable for Canadian and northern CONUS forecasts where it rivals or outperforms HRRR due to its terrain-resolving grid.',
+    links:[
+      {label:'RDPS Info (MSC)', url:'https://weather.gc.ca/model_forecast/index_e.html'},
+      {label:'MSC Datamart', url:'https://dd.weather.gc.ca/'},
+    ]
+  },
+  hrdps: {
+    name:'HRDPS', fullName:'High Resolution Deterministic Prediction System (Canada)',
+    color:'#fbbf24', dot:'#fbbf24',
+    resolution:'2.5 km', domain:'Canada / Northern CONUS', cycles:'00, 06, 12, 18 UTC',
+    maxForecast:'48h',
+    provider:'Environment and Climate Change Canada (ECCC)', openMeteoModel:'gem_hrdps_continental',
+    desc:'Canada\'s convection-allowing 2.5 km NWP model — the Canadian analogue to HRRR. Explicit convection over the continental sub-domain. Exceptional detail for complex terrain, coastlines, lake-effect, and orographic precipitation across Canada. Uses spectral nudging from RDPS for lateral boundaries.',
+    links:[
+      {label:'HRDPS Info (MSC)', url:'https://weather.gc.ca/model_forecast/index_e.html'},
+      {label:'MSC Datamart', url:'https://dd.weather.gc.ca/'},
+    ]
+  },
+  icon: {
+    name:'ICON', fullName:'ICON Global (Deutscher Wetterdienst)',
+    color:'#4ade80', dot:'#4ade80',
+    resolution:'13 km', domain:'Global', cycles:'00, 06, 12, 18 UTC',
+    maxForecast:'180h (7.5 days)',
+    provider:'Deutscher Wetterdienst (DWD)', openMeteoModel:'icon_global',
+    desc:'Germany\'s operational global NWP model from DWD. ICON (Icosahedral Nonhydrostatic) uses an icosahedral-triangular grid, avoiding polar singularities. Features a 2-moment microphysics scheme, flexible scalable parallelism, and tight integration with ICON-EU and ICON-D2 nests for seamless European coverage.',
+    links:[
+      {label:'ICON Model (DWD)', url:'https://www.dwd.de/EN/research/weatherforecasting/num_modelling/01_num_weather_prediction_modells/icon_description.html'},
+      {label:'DWD Open Data', url:'https://opendata.dwd.de/weather/nwp/'},
+      {label:'DWD WarnWetter', url:'https://www.dwd.de/EN/weather/warnungen_aktuell/warnungen_aktuell_node.html'},
+    ]
+  },
+  iconeu: {
+    name:'ICON-EU', fullName:'ICON-EU Regional (Deutscher Wetterdienst)',
+    color:'#86efac', dot:'#86efac',
+    resolution:'6.5 km', domain:'Europe + surroundings', cycles:'00, 03, 06, 09, 12, 15, 18, 21 UTC',
+    maxForecast:'120h (5 days)',
+    provider:'Deutscher Wetterdienst (DWD)', openMeteoModel:'icon_eu',
+    desc:'High-resolution regional nest of ICON over Europe. 6.5 km grid spacing with 3-hourly updates. Used operationally for short-range deterministic guidance across Europe. Coupled to the ICON-D2 nest over Germany and central Europe for even higher detail at convective scales.',
+    links:[
+      {label:'ICON-EU Info (DWD)', url:'https://www.dwd.de/EN/research/weatherforecasting/num_modelling/01_num_weather_prediction_modells/icon_description.html'},
+      {label:'DWD Open Data', url:'https://opendata.dwd.de/weather/nwp/'},
+    ]
+  },
+  icond2: {
+    name:'ICON-D2', fullName:'ICON-D2 Convection-Allowing (Deutscher Wetterdienst)',
+    color:'#bbf7d0', dot:'#bbf7d0',
+    resolution:'2 km', domain:'Germany + Central Europe', cycles:'Every 3h (00–21 UTC)',
+    maxForecast:'48h',
+    provider:'Deutscher Wetterdienst (DWD)', openMeteoModel:'icon_d2',
+    desc:'DWD\'s 2 km convection-allowing model over Germany and surrounding regions. Explicit deep convection, 2-moment microphysics, and a sophisticated land surface scheme. Updated every 3 hours with rapid cycling assimilation. Among the highest-resolution operational NWP products available globally.',
+    links:[
+      {label:'ICON-D2 Info (DWD)', url:'https://www.dwd.de/EN/research/weatherforecasting/num_modelling/01_num_weather_prediction_modells/icon_description.html'},
+      {label:'DWD Open Data', url:'https://opendata.dwd.de/weather/nwp/'},
+    ]
+  },
+  ukmo: {
+    name:'UKMO', fullName:'UK Met Office Unified Model (UKV/Global)',
+    color:'#67e8f9', dot:'#67e8f9',
+    resolution:'0.09° (~10 km)', domain:'Global', cycles:'00, 06, 12, 18 UTC',
+    maxForecast:'144h (6 days)',
+    provider:'UK Met Office', openMeteoModel:'uk_met_office_global',
+    desc:'The UK Met Office Unified Model (UM) is a single model framework running from global to convective scales. Operational global configuration at N1280 (~10 km). Uses a Semi-Lagrangian dynamical core with 4D-En-Var data assimilation. Historically among the top global model performers alongside ECMWF.',
+    links:[
+      {label:'Met Office NWP Info', url:'https://www.metoffice.gov.uk/research/approach/modelling-systems/unified-model'},
+      {label:'Met Office Weather Forecasts', url:'https://www.metoffice.gov.uk/weather/forecast/'},
+      {label:'MOGREPS Ensemble', url:'https://www.metoffice.gov.uk/research/approach/modelling-systems/mogreps'},
+    ]
+  },
+  jma: {
+    name:'JMA', fullName:'JMA Global Spectral Model (GSM)',
+    color:'#a5f3fc', dot:'#a5f3fc',
+    resolution:'0.25°', domain:'Global', cycles:'00, 06, 12, 18 UTC',
+    maxForecast:'264h (11 days)',
+    provider:'Japan Meteorological Agency', openMeteoModel:'jma_gsm',
+    desc:'Japan\'s operational global NWP model from JMA. GSM uses a spectral dynamical core with 4D-Var data assimilation and includes JMA\'s own satellite radiance processing. Particularly strong over the western Pacific, East Asia, and tropical cyclone track forecasting. Japan is also home to the NICAM and SCALE models for next-generation research.',
+    links:[
+      {label:'JMA NWP Overview', url:'https://www.jma.go.jp/jma/jma-eng/jma-center/nwp/nwp-top.htm'},
+      {label:'JMA Numerical Weather Prediction', url:'https://www.jma.go.jp/jma/jma-eng/jma-center/nwp/outline2019-nwp/index.htm'},
+    ]
+  },
 };
 
-const MODEL_ORDER = ['hrrr','nam3km','nam','rap','ndfd','nbm','gfs','aigfs','aigefs','gefs'];
+const MODEL_ORDER = ['hrrr','nam3km','nam','rap','ndfd','nbm','gfs','aigfs','aigefs','gefs','rrfs','ecmwf','gem','gemregional','hrdps','icon','iconeu','icond2','ukmo','jma'];
 
 // ═══════════════════════════════════════════════════════════════
 //  STATE
@@ -540,16 +669,27 @@ function setStatus(html) { document.getElementById('data-status').innerHTML = ht
 // ═══════════════════════════════════════════════════════════════
 //  BUILD MODEL TABS
 // ═══════════════════════════════════════════════════════════════
+const NOAA_MODELS = new Set(['hrrr','nam3km','nam','rap','ndfd','nbm','gfs','aigfs','aigefs','gefs','rrfs']);
+const INTL_MODELS = new Set(['ecmwf','gem','gemregional','hrdps','icon','iconeu','icond2','ukmo','jma']);
+
 function buildTabs() {
   const nav = document.getElementById('model-nav');
-  nav.innerHTML = MODEL_ORDER.map(id => {
+  let html = '';
+  let inIntl = false;
+  MODEL_ORDER.forEach(id => {
     const m = MODELS[id];
-    return `<div class="model-tab${id===state.model?' active':''}" onclick="selectModel('${id}')" data-model="${id}">
+    if (!inIntl && INTL_MODELS.has(id)) {
+      inIntl = true;
+      html += `<span style="display:inline-flex;align-items:center;padding:0 8px;font-size:10px;color:var(--border);user-select:none;">│</span>
+               <span style="display:inline-flex;align-items:center;padding:0 6px;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px;user-select:none;">INTERNATIONAL</span>`;
+    }
+    html += `<div class="model-tab${id===state.model?' active':''}" onclick="selectModel('${id}')" data-model="${id}">
       <span class="model-dot" style="background:${m.dot}"></span>
       ${m.name}
       ${m.experimental ? '<span class="exp-badge">AI</span>' : ''}
     </div>`;
-  }).join('');
+  });
+  nav.innerHTML = html;
 }
 
 function selectModel(id) {
@@ -605,7 +745,7 @@ async function fetchOpenMeteo(lat, lon, modelId) {
 
   const params = new URLSearchParams({
     latitude: lat, longitude: lon,
-    hourly: 'temperature_2m,dewpoint_2m,apparent_temperature,windspeed_10m,winddirection_10m,windgusts_10m,precipitation,precipitation_probability,weathercode,surface_pressure,relativehumidity_2m,snowfall,cape',
+    hourly: 'temperature_2m,dewpoint_2m,apparent_temperature,windspeed_10m,winddirection_10m,windgusts_10m,precipitation,precipitation_probability,weathercode,surface_pressure,relativehumidity_2m,snowfall,snow_depth,cape,cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,uv_index,visibility',
     temperature_unit: 'fahrenheit',
     windspeed_unit: 'mph',
     precipitation_unit: 'inch',
@@ -706,7 +846,7 @@ async function loadComparison() {
   const el = document.getElementById('compare-content');
   el.innerHTML = '<div style="color:var(--muted);font-size:12px;grid-column:1/-1"><span class="loading-spin"></span> Loading models…</div>';
 
-  const modelsToFetch = ['hrrr','rap','gfs','gefs','ndfd'];
+  const modelsToFetch = ['hrrr','gfs','ecmwf','gem','icon','ukmo'];
   const results = await Promise.allSettled(modelsToFetch.map(id => fetchOpenMeteo(state.lat, state.lon, id)));
 
   const cells = modelsToFetch.map((id, i) => {
@@ -813,27 +953,52 @@ function renderPrecipChart(data) {
   destroyChart();
   document.getElementById('chart-container').innerHTML = '<canvas id="main-chart"></canvas>';
   const h = data.hourly;
-  const step = 1;
+  const step = 6;
   const m = MODELS[state.model];
+
+  const precipFiltered = h.precipitation.filter((_,i)=>i%step===0);
+  const snowFiltered   = (h.snowfall||[]).filter((_,i)=>i%step===0);
+  const popFiltered    = (h.precipitation_probability||[]).filter((_,i)=>i%step===0);
 
   mainChart = new Chart(document.getElementById('main-chart'), {
     type:'bar',
     data:{
-      labels: makeTimeLabels(h.time, 6),
+      labels: makeTimeLabels(h.time, step),
       datasets:[
-        {label:`${m.name} Precipitation (in/hr)`, data:h.precipitation.filter((_,i)=>i%6===0),
-         backgroundColor:'#3b82f6aa', borderColor:'#60a5fa', borderWidth:1},
-        {label:'Snowfall (in/hr)', data:h.snowfall.filter((_,i)=>i%6===0),
-         backgroundColor:'#e2e8f0aa', borderColor:'#cbd5e1', borderWidth:1},
+        {
+          type:'bar',
+          label:`${m.name} Liquid Precip (in)`,
+          data: precipFiltered,
+          backgroundColor:'#3b82f6aa', borderColor:'#60a5fa', borderWidth:1,
+          yAxisID:'y', stack:'precip',
+        },
+        {
+          type:'bar',
+          label:'Snowfall (in SWE)',
+          data: snowFiltered,
+          backgroundColor:'#e2e8f0aa', borderColor:'#cbd5e1', borderWidth:1,
+          yAxisID:'y', stack:'precip',
+        },
+        {
+          type:'line',
+          label:'Prob. of Precip (%)',
+          data: popFiltered,
+          borderColor:'#4ade80', backgroundColor:'transparent',
+          borderWidth:2, pointRadius:0, tension:.4,
+          yAxisID:'y1',
+        },
       ]
     },
     options:{
       ...CHART_DEFAULTS,
       scales:{
         x:{...CHART_DEFAULTS.scales.x, stacked:true},
-        y:{...CHART_DEFAULTS.scales.y, stacked:true, min:0},
-        y1:{display:true, position:'right', ticks:{color:'#4ade80', font:{size:10}},
-            grid:{drawOnChartArea:false}, title:{display:true, text:'PoP %', color:'#4ade80', font:{size:10}}},
+        y:{...CHART_DEFAULTS.scales.y, stacked:true, min:0,
+           title:{display:true, text:'Precip (in)', color:'#6a9dbf', font:{size:10}}},
+        y1:{display:true, position:'right', min:0, max:100,
+            ticks:{color:'#4ade80', font:{size:10}, callback:v=>v+'%'},
+            grid:{drawOnChartArea:false},
+            title:{display:true, text:'PoP %', color:'#4ade80', font:{size:10}}},
       }
     }
   });
@@ -877,6 +1042,180 @@ function renderPressureChart(data) {
     },
     options:{...CHART_DEFAULTS}
   });
+}
+
+function renderCloudCoverChart(data) {
+  destroyChart();
+  document.getElementById('chart-container').innerHTML = '<canvas id="main-chart"></canvas>';
+  const h = data.hourly;
+  const step = 3;
+  const m = MODELS[state.model];
+
+  mainChart = new Chart(document.getElementById('main-chart'), {
+    type:'line',
+    data:{
+      labels: makeTimeLabels(h.time, step),
+      datasets:[
+        {label:'Total Cloud Cover (%)', data:(h.cloudcover||[]).filter((_,i)=>i%step===0),
+         borderColor:m.color, backgroundColor:m.color+'33', fill:true, tension:.4, pointRadius:1, borderWidth:2},
+        {label:'High Cloud (%)', data:(h.cloudcover_high||[]).filter((_,i)=>i%step===0),
+         borderColor:'#cbd5e1', backgroundColor:'transparent', fill:false, tension:.4, pointRadius:0, borderWidth:1.5, borderDash:[4,3]},
+        {label:'Mid Cloud (%)', data:(h.cloudcover_mid||[]).filter((_,i)=>i%step===0),
+         borderColor:'#94a3b8', backgroundColor:'transparent', fill:false, tension:.4, pointRadius:0, borderWidth:1.2, borderDash:[2,4]},
+        {label:'Low Cloud (%)', data:(h.cloudcover_low||[]).filter((_,i)=>i%step===0),
+         borderColor:'#64748b', backgroundColor:'transparent', fill:false, tension:.4, pointRadius:0, borderWidth:1, borderDash:[1,4]},
+      ]
+    },
+    options:{...CHART_DEFAULTS, scales:{...CHART_DEFAULTS.scales, y:{...CHART_DEFAULTS.scales.y, min:0, max:100, ticks:{...CHART_DEFAULTS.scales.y.ticks, callback:v=>v+'%'}}}}
+  });
+}
+
+function renderCAPEChart(data) {
+  destroyChart();
+  document.getElementById('chart-container').innerHTML = '<canvas id="main-chart"></canvas>';
+  const h = data.hourly;
+  const step = 3;
+  const m = MODELS[state.model];
+  const capeVals = (h.cape||[]).filter((_,i)=>i%step===0);
+
+  mainChart = new Chart(document.getElementById('main-chart'), {
+    type:'bar',
+    data:{
+      labels: makeTimeLabels(h.time, step),
+      datasets:[{
+        label:`${m.name} CAPE (J/kg)`,
+        data: capeVals,
+        backgroundColor: capeVals.map(v => {
+          if (v > 3000) return '#ef444488';
+          if (v > 2000) return '#f97316aa';
+          if (v > 1000) return '#f59e0baa';
+          if (v > 500)  return '#eab30888';
+          return '#22c55e44';
+        }),
+        borderColor: capeVals.map(v => {
+          if (v > 3000) return '#ef4444';
+          if (v > 2000) return '#f97316';
+          if (v > 1000) return '#f59e0b';
+          if (v > 500)  return '#eab308';
+          return '#22c55e';
+        }),
+        borderWidth:1,
+      }]
+    },
+    options:{
+      ...CHART_DEFAULTS,
+      scales:{...CHART_DEFAULTS.scales, y:{...CHART_DEFAULTS.scales.y, min:0}}
+    }
+  });
+
+  document.getElementById('below-chart').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:11px;">
+      <span style="padding:2px 8px;border-radius:4px;background:#22c55e44;border:1px solid #22c55e;color:#4ade80">0–500 J/kg: Weak</span>
+      <span style="padding:2px 8px;border-radius:4px;background:#eab30844;border:1px solid #eab308;color:#fbbf24">500–1000 J/kg: Moderate</span>
+      <span style="padding:2px 8px;border-radius:4px;background:#f59e0b44;border:1px solid #f59e0b;color:#fcd34d">1000–2000 J/kg: Strong</span>
+      <span style="padding:2px 8px;border-radius:4px;background:#f9731644;border:1px solid #f97316;color:#fb923c">2000–3000 J/kg: Very Strong</span>
+      <span style="padding:2px 8px;border-radius:4px;background:#ef444444;border:1px solid #ef4444;color:#f87171">&gt;3000 J/kg: Extreme</span>
+    </div>`;
+}
+
+function renderUVChart(data) {
+  destroyChart();
+  document.getElementById('chart-container').innerHTML = '<canvas id="main-chart"></canvas>';
+  const h = data.hourly;
+  const step = 1;
+  const uvVals = (h.uv_index||[]).filter((_,i)=>i%step===0);
+
+  mainChart = new Chart(document.getElementById('main-chart'), {
+    type:'bar',
+    data:{
+      labels: makeTimeLabels(h.time, 6),
+      datasets:[{
+        label:'UV Index',
+        data: (h.uv_index||[]).filter((_,i)=>i%6===0),
+        backgroundColor: (h.uv_index||[]).filter((_,i)=>i%6===0).map(v => {
+          if (v >= 11) return '#7e22ce88';
+          if (v >= 8)  return '#ef444488';
+          if (v >= 6)  return '#f97316aa';
+          if (v >= 3)  return '#f59e0baa';
+          return '#22c55e66';
+        }),
+        borderColor: (h.uv_index||[]).filter((_,i)=>i%6===0).map(v => {
+          if (v >= 11) return '#a855f7';
+          if (v >= 8)  return '#ef4444';
+          if (v >= 6)  return '#f97316';
+          if (v >= 3)  return '#f59e0b';
+          return '#22c55e';
+        }),
+        borderWidth:1,
+      }]
+    },
+    options:{
+      ...CHART_DEFAULTS,
+      scales:{...CHART_DEFAULTS.scales, y:{...CHART_DEFAULTS.scales.y, min:0, max:Math.max(12, ...((h.uv_index||[0]).filter((_,i)=>i%6===0).map(v=>Math.ceil(v)+1)))}}
+    }
+  });
+
+  document.getElementById('below-chart').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:11px;">
+      <span style="padding:2px 8px;border-radius:4px;background:#22c55e44;border:1px solid #22c55e;color:#4ade80">1–2: Low</span>
+      <span style="padding:2px 8px;border-radius:4px;background:#f59e0b44;border:1px solid #f59e0b;color:#fcd34d">3–5: Moderate</span>
+      <span style="padding:2px 8px;border-radius:4px;background:#f9731644;border:1px solid #f97316;color:#fb923c">6–7: High</span>
+      <span style="padding:2px 8px;border-radius:4px;background:#ef444444;border:1px solid #ef4444;color:#f87171">8–10: Very High</span>
+      <span style="padding:2px 8px;border-radius:4px;background:#7e22ce44;border:1px solid #a855f7;color:#c084fc">11+: Extreme</span>
+    </div>`;
+}
+
+function renderVisibilityChart(data) {
+  destroyChart();
+  document.getElementById('chart-container').innerHTML = '<canvas id="main-chart"></canvas>';
+  const h = data.hourly;
+  const step = 3;
+  const m = MODELS[state.model];
+  // visibility in meters → convert to miles
+  const visMiles = (h.visibility||[]).filter((_,i)=>i%step===0).map(v => v != null ? +(v/1609.344).toFixed(1) : null);
+
+  mainChart = new Chart(document.getElementById('main-chart'), {
+    type:'line',
+    data:{
+      labels: makeTimeLabels(h.time, step),
+      datasets:[{
+        label:`${m.name} Visibility (mi)`,
+        data: visMiles,
+        borderColor: m.color,
+        backgroundColor: m.color+'22',
+        fill:true, tension:.4, pointRadius:1, borderWidth:2,
+      }]
+    },
+    options:{
+      ...CHART_DEFAULTS,
+      scales:{
+        ...CHART_DEFAULTS.scales,
+        y:{
+          ...CHART_DEFAULTS.scales.y,
+          min:0,
+          ticks:{...CHART_DEFAULTS.scales.y.ticks, callback:v=>v+' mi'},
+          // Reference lines for VFR/IFR categories
+        }
+      },
+      plugins:{
+        ...CHART_DEFAULTS.plugins,
+        annotation:{
+          annotations:{
+            vfr:{type:'line',yMin:3,yMax:3,borderColor:'#22c55e55',borderWidth:1,borderDash:[4,4]},
+            mvfr:{type:'line',yMin:1,yMax:1,borderColor:'#f59e0b55',borderWidth:1,borderDash:[4,4]},
+          }
+        }
+      }
+    }
+  });
+
+  document.getElementById('below-chart').innerHTML = `
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;">
+      Aviation categories: <span style="color:#ef4444">LIFR</span> &lt;1 mi ·
+      <span style="color:#f97316">IFR</span> 1–3 mi ·
+      <span style="color:#60a5fa">MVFR</span> 3–5 mi ·
+      <span style="color:#22c55e">VFR</span> &gt;5 mi
+    </div>`;
 }
 
 async function renderNDFDChart() {
@@ -1011,11 +1350,16 @@ async function renderCompareChart() {
   document.getElementById('below-chart').innerHTML = '';
 
   const modelsToCompare = [
-    {id:'hrrr', omModel:'gfs_hrrr'},
-    {id:'rap', omModel:'gfs_hrrr'},
-    {id:'gfs', omModel:'gfs_seamless'},
-    {id:'gefs', omModel:'gfs_seamless'},
-    {id:'ndfd', omModel:'gfs_seamless'},
+    {id:'hrrr',       omModel:'gfs_hrrr'},
+    {id:'rap',        omModel:'gfs_hrrr'},
+    {id:'gfs',        omModel:'gfs_seamless'},
+    {id:'gefs',       omModel:'gfs_seamless'},
+    {id:'ndfd',       omModel:'gfs_seamless'},
+    {id:'ecmwf',      omModel:'ecmwf_ifs025'},
+    {id:'gem',        omModel:'gem_global'},
+    {id:'icon',       omModel:'icon_global'},
+    {id:'ukmo',       omModel:'uk_met_office_global'},
+    {id:'jma',        omModel:'jma_gsm'},
   ];
 
   const results = await Promise.allSettled(
@@ -1057,7 +1401,7 @@ async function renderCompareChart() {
 
   document.getElementById('below-chart').innerHTML = `
     <div style="font-size:11px;color:var(--muted);">
-      Temperature comparison using Open-Meteo API proxies. HRRR/RAP use gfs_hrrr; GFS/GEFS/NDFD use gfs_seamless. Model differences reflect initialization and parameterization variance.
+      Temperature comparison via Open-Meteo API. HRRR/RAP use <code>gfs_hrrr</code>; GFS/GEFS/NDFD use <code>gfs_seamless</code>; ECMWF IFS, GEM, ICON, UKMO, and JMA use their native Open-Meteo model IDs. Differences reflect initialization time, data assimilation, and parameterization variance across modelling centres.
     </div>`;
 }
 
@@ -1084,11 +1428,15 @@ async function loadChartData() {
 
     const data = await fetchOpenMeteo(state.lat, state.lon, state.model);
     switch(state.chartVar) {
-      case 'temp':     renderTemperatureChart(data); break;
-      case 'wind':     renderWindChart(data);        break;
-      case 'precip':   renderPrecipChart(data);      break;
-      case 'humidity': renderHumidityChart(data);    break;
-      case 'pressure': renderPressureChart(data);    break;
+      case 'temp':       renderTemperatureChart(data); break;
+      case 'wind':       renderWindChart(data);        break;
+      case 'precip':     renderPrecipChart(data);      break;
+      case 'humidity':   renderHumidityChart(data);    break;
+      case 'pressure':   renderPressureChart(data);    break;
+      case 'cloudcover': renderCloudCoverChart(data);  break;
+      case 'cape':       renderCAPEChart(data);        break;
+      case 'uv':         renderUVChart(data);          break;
+      case 'visibility': renderVisibilityChart(data);  break;
     }
 
     // Forecast table below
